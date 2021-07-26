@@ -44,6 +44,19 @@ const useStyles2 = makeStyles({
 });
 
 export default function Add() {
+
+    const tmp = {
+        first_name: ' ',
+        last_name: ' ',
+        gender: 'female',
+        age: 16,
+        push_ups: 10,
+        sit_ups: 10,
+        run_time: '10:00',
+        test_date: '2021-01-01'
+    };
+
+
     const classes = useStyles2();
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -51,10 +64,11 @@ export default function Add() {
     const [updatedFlag, setUpdatedFlag] = useState(false);
     const [updateField, setUpdateField] = useState(false);
     const [clickedId, setClickedId] = useState(null);
-    const [tmpRowValues, setTmpRowValues] = useState({});
+    const [tmpRowValues, setTmpRowValues] = useState(tmp);
+    const [updatedFlag1, setUpdatedFlag1] = useState(false);
+
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, testData.length - page * rowsPerPage);
-
 
 
     useEffect(() => {
@@ -78,12 +92,12 @@ export default function Add() {
                 return data;
             })
             .then(setTestData)
-            .then(setTmpRowValues(testData))            
             .catch(err => {
                 console.error(err);
-            console.log('useEffect TmpRowValues:', tmpRowValues);
             });//fetch
     }, [updatedFlag]);//useEffect initial API call
+
+
 
     function getRunScore(runtime) {
         let maxPoints = 60;
@@ -92,9 +106,9 @@ export default function Add() {
         let runMin = parseFloat(tmp[0]);
         let runSec = parseFloat(tmp[1]);
         let runNum = runMin * 60 + runSec;
-        console.log('runNum: ', runNum);
+        // console.log('runNum: ', runNum);
         if (runNum < maxRun) {
-            return 60
+            return parseFloat(maxPoints.toFixed(1));
         } else {
             return (Math.round(((maxRun / runNum) * maxPoints) * 10) / 10)
         }
@@ -106,7 +120,7 @@ export default function Add() {
         let maxScore = 20
 
         if (situps >= maxSitups) {
-            return maxScore
+            return parseFloat(maxScore.toFixed(1));
         } else {
             return parseFloat(((situps / maxSitups) * maxScore).toFixed(1));
         }
@@ -115,9 +129,9 @@ export default function Add() {
     function getPushupsScore(pushups) {
         let maxPushups = 67
         let maxScore = 20
-        console.log('getPushupsScore', pushups);
+        // console.log('getPushupsScore', pushups);
         if (pushups >= maxPushups) {
-            return maxScore
+            return parseFloat(maxScore.toFixed(1));
         } else {
             return parseFloat(((pushups / maxPushups) * maxScore).toFixed(1));
         }
@@ -129,7 +143,7 @@ export default function Add() {
         // let updatedData = {...tmpRowValues, test_id: clickedId, push_ups_score: pushupScore, sit_ups_score: situpsScore};
         // console.log('onUpdate() updatedData: ', updatedData);
         fetch(BASE_BACKEND_URL, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
@@ -137,7 +151,8 @@ export default function Add() {
             body: JSON.stringify(tmpRowValues) // body data type must match "Content-Type" header
         })
             // .then(setTmpRowValues({}))
-            .then(() => setUpdatedFlag(!updatedFlag))//fetch chain      
+            .then(() => setTmpRowValues({...tmp}))
+            .then(() => setUpdatedFlag1(!updatedFlag1))//fetch chain      
             .catch(err => {
                 console.error(err);
             })
@@ -146,6 +161,8 @@ export default function Add() {
     }
 
     function captureUserInputs(inputs) {
+
+
         console.log('captureUserInputs', inputs);
         console.log('tmprowValues before setTmpRowValues', tmpRowValues);
         let scores = { push_ups_score: getPushupsScore(tmpRowValues.push_ups), sit_ups_score: getSitupsScore(tmpRowValues.sit_ups), run_time_score: getRunScore(tmpRowValues.run_time.slice(0, 5)) }
@@ -154,10 +171,10 @@ export default function Add() {
         console.log('sumValues', sumValues);
         scores = { ...scores, total_score: sumValues.toFixed(1) };
         console.log('scores with total score', scores);
-        let tmp = { test_id: clickedId, ...tmpRowValues, ...inputs, ...scores };
-        console.log('setTmpRowValues inputs', tmp);
+        let tmp1 = { ...tmpRowValues, ...inputs, ...scores };
+        console.log('setTmpRowValues inputs', tmp1);
         //setTmpRowValues({...tmpRowValues, ...inputs, push_ups_score: getPushupsScore(tmpRowValues.push_ups), sit_ups_score: getSitupsScore(tmpRowValues.sit_ups)});
-        setTmpRowValues({ ...tmp });
+        setTmpRowValues({ ...tmp1 });
         console.log('captureUserInputs tmpRowValues: ', tmpRowValues);
         console.log('getUpshupsScore', getPushupsScore(tmpRowValues.push_ups));
     }
@@ -187,30 +204,33 @@ export default function Add() {
 
                     <TableCell component="th" scope="row">
                         <Button onClick={() => {
-                            setClickedId(testData.test_id);
-                            setUpdateField(!updateField);
-                            setTmpRowValues(testData);
-                        }}>Cancel
+                            setTmpRowValues({ ...tmp });
+                            setUpdatedFlag1(!updatedFlag1);
+                        }}>Reset
                         </Button>
                         <Button onClick={() => {
+                            console.log('testData', testData.map(data => data = parseInt(data.test_id)));
+                            let maxId = Math.max(testData.map(data => data = parseInt(data.test_id))) + 1;
+                            let newTestId = { test_id: maxId };
+                            captureUserInputs(newTestId);
                             onUpdate();
-                            setUpdateField(!updateField);
-                        }}>Submit</Button>
+                            setUpdatedFlag1(!updatedFlag1);
+                        }}>Add</Button>
                     </TableCell>
                     <TableCell component="th" scope="row">
-                        <TextField label="First Name" defaultValue={''} onChange={(event) => {
+                        <TextField label="First Name" defaultValue={tmpRowValues.first_name} onChange={(event) => {
                             captureUserInputs({ first_name: event.target.value })
                         }
                         } />
                     </TableCell>
                     <TableCell component="th" scope="row">
-                        <TextField label="Last Name" defaultValue={''} onChange={(event) => {
+                        <TextField label="Last Name" defaultValue={tmpRowValues.last_name} onChange={(event) => {
                             captureUserInputs({ last_name: event.target.value })
                         }
                         } />
                     </TableCell>
                     <TableCell component="th" scope="row">
-                        <TextField type='number' min='16' label="Age" defaultValue={16} onChange={(event) => {
+                        <TextField type='number' min='16' label="Age" defaultValue={tmpRowValues.age} onChange={(event) => {
                             captureUserInputs({ age: event.target.value })
                         }
                         } />
@@ -219,7 +239,10 @@ export default function Add() {
 
                         <FormControl className={classes.field}>
                             <InputLabel id="label">Gender</InputLabel>
-                            <Select labelId="label" value={'female'} onChange={(e) => captureUserInputs({ gender: e.target.value })} >
+                            <Select labelId="label" value={'female'} onChange={(e) => {
+                                captureUserInputs({ gender: e.target.value })
+                                console.log('gender e: ', e);
+                            }}>
                                 <MenuItem value={'female'}>Female</MenuItem>
                                 <MenuItem value={'male'}>Male</MenuItem>
                             </Select>
@@ -227,7 +250,7 @@ export default function Add() {
 
                     </TableCell>
                     <TableCell component="th" scope="row">
-                        <TextField type="number" min="0" label="Push Ups" defaultValue={0} onChange={(event) => {
+                        <TextField type="number" min="0" label="Push Ups" defaultValue={tmpRowValues.push_ups} onChange={(event) => {
                             // setPushups(event.target.value)
                             captureUserInputs({ push_ups: event.target.value })
                         }
@@ -235,29 +258,29 @@ export default function Add() {
                     </TableCell>
 
                     <TableCell component="th" scope="row" type='number' min='0' step='0.1'>
-                        {0}
+                        {tmpRowValues.push_ups_score}
                     </TableCell>
 
                     <TableCell component="th" scope="row">
                         <Table>
                             <TableRow>
-                                <TextField type='number' label="Minutes" min='0' max='59' step='1' defaultValue={0} onChange={(event) => {
-                                    let tmp = '';
+                                <TextField type='number' label="Minutes" min='0' max='59' step='1' defaultValue={tmpRowValues.run_time.slice(0, 2)} onChange={(event) => {
+                                    let tmp1 = '';
                                     if (event.target.value < 10)
-                                        tmp = ('0' + String(event.target.value));
-                                    else tmp = String(event.target.value);
-                                    captureUserInputs({ run_time: (tmp + tmpRowValues.run_time.slice(2, 5)) });
+                                        tmp1 = ('0' + String(event.target.value));
+                                    else tmp1 = String(event.target.value);
+                                    captureUserInputs({ run_time: (tmp1 + tmpRowValues.run_time.slice(2, 5)) });
                                     // setRunTime(event.target.value)
                                 }}
                                 />
 
-                                <TextField type='number' label="Seconds" min='0' max='59' step='1' defaultValue={0} onChange={(event) => {
-                                    let tmp = '';
+                                <TextField type='number' label="Seconds" min='0' max='59' step='1' defaultValue={tmpRowValues.run_time.slice(3, 5)} onChange={(event) => {
+                                    let tmp1 = '';
                                     if (event.target.value < 10)
-                                        tmp = ('0' + String(event.target.value));
-                                    else tmp = String(event.target.value);
+                                        tmp1 = ('0' + String(event.target.value));
+                                    else tmp1 = String(event.target.value);
 
-                                    captureUserInputs({ run_time: (tmpRowValues.run_time.slice(0, 3) + tmp) });
+                                    captureUserInputs({ run_time: (tmpRowValues.run_time.slice(0, 3) + tmp1) });
                                     // setRunTime(event.target.value)
                                 }}
                                 />
@@ -293,10 +316,10 @@ export default function Add() {
                     <TableCell component="th" scope="row">
                         {tmpRowValues.total_score}
                     </TableCell>
-                    
-            </TableBody>
+
+                </TableBody>
             </Table>
 
-    </TableContainer >
-  );
+        </TableContainer >
+    );
 }
