@@ -1,11 +1,11 @@
 import './App.css';
-import ViewScores from './ViewScores';
+import Nav from './Nav';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-       <ViewScores/>
+       <Nav/>
       </header>
     </div>
   );
