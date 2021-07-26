@@ -108,7 +108,7 @@ export default function Add() {
         let runNum = runMin * 60 + runSec;
         // console.log('runNum: ', runNum);
         if (runNum < maxRun) {
-            return parseFloat(maxPoints.toFixed(1));
+            return maxPoints;
         } else {
             return (Math.round(((maxRun / runNum) * maxPoints) * 10) / 10)
         }
@@ -120,9 +120,9 @@ export default function Add() {
         let maxScore = 20
 
         if (situps >= maxSitups) {
-            return parseFloat(maxScore.toFixed(1));
+            return maxScore;
         } else {
-            return parseFloat(((situps / maxSitups) * maxScore).toFixed(1));
+            return Math.round(situps / maxSitups * maxScore *10)/10;
         }
     }
 
@@ -131,9 +131,9 @@ export default function Add() {
         let maxScore = 20
         // console.log('getPushupsScore', pushups);
         if (pushups >= maxPushups) {
-            return parseFloat(maxScore.toFixed(1));
+            return maxScore;
         } else {
-            return parseFloat(((pushups / maxPushups) * maxScore).toFixed(1));
+            return (Math.round(pushups / maxPushups * maxScore * 10) /10)
         }
     }
 
