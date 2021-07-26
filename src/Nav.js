@@ -65,15 +65,11 @@ export default function Nav() {
     <div className={classes.root}>
       <AppBar position="static">
         <Tabs value={value} onChange={handleChange} aria-label="simple tabs example">          
-          <Tab label="Add" {...a11yProps(0)} />
           <Tab label="Update" {...a11yProps(1)} />
           <Tab label="Delete" {...a11yProps(2)} />
           <Tab label='View' {...a11yProps(3)} />
         </Tabs>
       </AppBar>
-      <TabPanel value={value} index={0}>
-        <Add/>
-      </TabPanel>
       <TabPanel value={value} index={1}>
         <Update/>
       </TabPanel>
